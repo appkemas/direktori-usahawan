@@ -1,26 +1,115 @@
 @import "tailwindcss";
 
 :root {
+  /* Modern Color Palette */
+  --primary: #8B5CF6; /* Purple */
+  --primary-light: #A78BFA;
+  --primary-dark: #7C3AED;
+  --secondary: #EC4899; /* Pink */
+  --secondary-light: #F472B6;
+  --secondary-dark: #DB2777;
+  --accent: #F59E0B; /* Amber */
+  --accent-light: #FBBF24;
+  --accent-dark: #D97706;
+  
+  /* Neutral Colors */
   --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --foreground: #1F2937;
+  --muted: #6B7280;
+  --muted-light: #9CA3AF;
+  --muted-dark: #4B5563;
+  --border: #E5E7EB;
+  --ring: var(--primary);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #0F172A;
+    --foreground: #F8FAFC;
+    --border: #334155;
+    --muted: #64748B;
+    --muted-light: #94A3B8;
+    --muted-dark: #475569;
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Modern animations */
+@keyframes blob {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+}
+
+.animate-blob {
+  animation: blob 7s infinite;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
+/* Custom utility classes */
+.bg-primary { background-color: var(--primary); }
+.bg-primary-light { background-color: var(--primary-light); }
+.bg-primary-dark { background-color: var(--primary-dark); }
+.bg-secondary { background-color: var(--secondary); }
+.bg-secondary-light { background-color: var(--secondary-light); }
+.bg-secondary-dark { background-color: var(--secondary-dark); }
+.bg-accent { background-color: var(--accent); }
+.bg-accent-light { background-color: var(--accent-light); }
+.bg-accent-dark { background-color: var(--accent-dark); }
+
+.text-primary { color: var(--primary); }
+.text-primary-light { color: var(--primary-light); }
+.text-primary-dark { color: var(--primary-dark); }
+.text-secondary { color: var(--secondary); }
+.text-secondary-light { color: var(--secondary-light); }
+.text-secondary-dark { color: var(--secondary-dark); }
+.text-accent { color: var(--accent); }
+.text-accent-light { color: var(--accent-light); }
+.text-accent-dark { color: var(--accent-dark); }
+
+.border-primary { border-color: var(--primary); }
+.border-secondary { border-color: var(--secondary); }
+.border-accent { border-color: var(--accent); }
+
+.ring-primary { --tw-ring-color: var(--primary); }
+.ring-secondary { --tw-ring-color: var(--secondary); }
+.ring-accent { --tw-ring-color: var(--accent); }
+
+/* Glass morphism effects */
+.glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Better focus states */
+*:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
 }
