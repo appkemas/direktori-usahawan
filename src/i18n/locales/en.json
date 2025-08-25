@@ -1,0 +1,73 @@
+{
+  "common": {
+    "search": "Search",
+    "loading": "Loading...",
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "save": "Save",
+    "edit": "Edit",
+    "delete": "Delete",
+    "approve": "Approve",
+    "reject": "Reject",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous"
+  },
+  "navigation": {
+    "home": "Home",
+    "search": "Search Business",
+    "admin": "Admin",
+    "login": "Login",
+    "logout": "Logout"
+  },
+  "home": {
+    "title": "KEMAS Entrepreneur Directory",
+    "subtitle": "Discover local businesses in Malaysia",
+    "searchPlaceholder": "Search business, category or location...",
+    "categories": "Categories",
+    "latestEntrepreneurs": "Latest Entrepreneurs",
+    "viewAll": "View All"
+  },
+  "categories": {
+    "food": "Food",
+    "fashion": "Fashion",
+    "services": "Services",
+    "handicraft": "Handicraft",
+    "technology": "Technology",
+    "health": "Health",
+    "education": "Education",
+    "beauty": "Beauty"
+  },
+  "business": {
+    "contact": "Contact",
+    "call": "Call",
+    "whatsapp": "WhatsApp",
+    "location": "Location",
+    "description": "Description",
+    "priceRange": "Price Range",
+    "products": "Products",
+    "video": "Video"
+  },
+  "admin": {
+    "dashboard": "Dashboard",
+    "entrepreneurs": "Entrepreneurs",
+    "pending": "Pending",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "states": "States",
+    "districts": "Districts",
+    "users": "Users",
+    "settings": "Settings"
+  },
+  "forms": {
+    "businessName": "Business Name",
+    "category": "Category",
+    "description": "Description",
+    "phone": "Phone",
+    "whatsapp": "WhatsApp",
+    "state": "State",
+    "district": "District",
+    "images": "Images",
+    "youtubeVideo": "YouTube Video"
+  }
+}

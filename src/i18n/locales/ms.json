@@ -1,0 +1,73 @@
+{
+  "common": {
+    "search": "Cari",
+    "loading": "Memuat...",
+    "submit": "Hantar",
+    "cancel": "Batal",
+    "save": "Simpan",
+    "edit": "Edit",
+    "delete": "Padam",
+    "approve": "Lulus",
+    "reject": "Tolak",
+    "back": "Kembali",
+    "next": "Seterusnya",
+    "previous": "Sebelumnya"
+  },
+  "navigation": {
+    "home": "Laman Utama",
+    "search": "Cari Perniagaan",
+    "admin": "Pentadbir",
+    "login": "Log Masuk",
+    "logout": "Log Keluar"
+  },
+  "home": {
+    "title": "Direktori Usahawan KEMAS",
+    "subtitle": "Temui perniagaan tempatan di Malaysia",
+    "searchPlaceholder": "Cari perniagaan, kategori atau lokasi...",
+    "categories": "Kategori",
+    "latestEntrepreneurs": "Usahawan Terkini",
+    "viewAll": "Lihat Semua"
+  },
+  "categories": {
+    "food": "Makanan",
+    "fashion": "Fesyen",
+    "services": "Perkhidmatan",
+    "handicraft": "Kraftangan",
+    "technology": "Teknologi",
+    "health": "Kesihatan",
+    "education": "Pendidikan",
+    "beauty": "Kecantikan"
+  },
+  "business": {
+    "contact": "Hubungi",
+    "call": "Panggil",
+    "whatsapp": "WhatsApp",
+    "location": "Lokasi",
+    "description": "Penerangan",
+    "priceRange": "Julat Harga",
+    "products": "Produk",
+    "video": "Video"
+  },
+  "admin": {
+    "dashboard": "Papan Pemuka",
+    "entrepreneurs": "Usahawan",
+    "pending": "Menunggu",
+    "approved": "Diluluskan",
+    "rejected": "Ditolak",
+    "states": "Negeri",
+    "districts": "Daerah",
+    "users": "Pengguna",
+    "settings": "Tetapan"
+  },
+  "forms": {
+    "businessName": "Nama Perniagaan",
+    "category": "Kategori",
+    "description": "Penerangan",
+    "phone": "Telefon",
+    "whatsapp": "WhatsApp",
+    "state": "Negeri",
+    "district": "Daerah",
+    "images": "Gambar",
+    "youtubeVideo": "Video YouTube"
+  }
+}
