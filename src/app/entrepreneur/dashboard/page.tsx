@@ -6,6 +6,7 @@ import { auth, db } from '@/firebase/config';
 import { signOut, onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { Building2, LogOut, User, Mail, Phone, MapPin, Edit, Save, X, AlertCircle, Image, Video, Plus, Trash2, Link } from 'lucide-react';
+import { Suspense } from 'react';
 
 interface EntrepreneurData {
   id: string;
@@ -30,7 +31,8 @@ interface EntrepreneurData {
   };
 }
 
-export default function EntrepreneurDashboard() {
+// Create a component that uses useSearchParams
+function DashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const entrepreneurId = searchParams.get('id');
@@ -738,5 +740,21 @@ export default function EntrepreneurDashboard() {
         )}
       </main>
     </div>
+  );
+}
+
+// Main page component with Suspense
+export default function EntrepreneurDashboard() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-50 to-pink-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 text-lg">Memuatkan dashboard usahawan...</p>
+        </div>
+      </div>
+    }>
+      <DashboardContent />
+    </Suspense>
   );
 }
