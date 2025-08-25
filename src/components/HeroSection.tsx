@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import { Search, MapPin } from 'lucide-react';
-import Image from 'next/image';
 
 export default function HeroSection() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -39,19 +38,6 @@ export default function HeroSection() {
       <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
 
       <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        {/* KEMAS Logo above the title */}
-        <div className="mb-8 flex justify-center">
-          <div className="bg-white/20 backdrop-blur-md rounded-2xl p-4 border border-white/30">
-            <Image
-              src="/kemas-logo.png"
-              alt="KEMAS Logo"
-              width={80}
-              height={80}
-              className="rounded-lg"
-            />
-          </div>
-        </div>
-
         {/* Main heading with modern typography */}
         <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold text-white mb-6 leading-tight">
           <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-yellow-400 bg-clip-text text-transparent">
