@@ -5,7 +5,7 @@ import { useAdminAuth } from '@/contexts/AdminAuthContext';
 import { collection, query, where, getDocs, orderBy, updateDoc, doc } from 'firebase/firestore';
 import { db } from '@/firebase/config';
 import { 
-  MapPin, Building2, Shield, BarChart3,
+  Users, MapPin, Settings, Plus, LogOut, Building2, Shield, BarChart3,
   CheckCircle, AlertCircle, X, Eye, Edit, Trash2, UserPlus, AlertTriangle
 } from 'lucide-react';
 
@@ -30,6 +30,7 @@ export default function DistrictAdminDashboard() {
   // All state declarations must come first
   const [activeTab, setActiveTab] = useState('overview');
   const [entrepreneurs, setEntrepreneurs] = useState<Entrepreneur[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const [isLoadingEntrepreneurs, setIsLoadingEntrepreneurs] = useState(false);
 
   // Authentication check

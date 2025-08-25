@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAdminAuth } from '@/contexts/AdminAuthContext';
 import { addDoc, collection, getDocs, query, where, updateDoc, doc, deleteDoc } from 'firebase/firestore';
@@ -76,7 +76,14 @@ export default function StateAdminDashboard() {
     }
   }, [adminUser, router]);
 
-  const fetchDistrictAdmins = useCallback(async () => {
+  useEffect(() => {
+    if (adminUser?.role === 'state' && currentState) {
+      fetchDistrictAdmins();
+    }
+  }, [adminUser, currentState]);
+
+  // All function declarations
+  const fetchDistrictAdmins = async () => {
     try {
       setIsLoadingDistrictAdmins(true);
       console.log('Fetching district admins for state:', currentState);
@@ -114,13 +121,8 @@ export default function StateAdminDashboard() {
     } finally {
       setIsLoadingDistrictAdmins(false);
     }
-  }, [currentState]);
+  };
 
-  useEffect(() => {
-    fetchDistrictAdmins();
-  }, [fetchDistrictAdmins]);
-
-  // All function declarations
   const handleLogout = async () => {
     try {
       await logout();

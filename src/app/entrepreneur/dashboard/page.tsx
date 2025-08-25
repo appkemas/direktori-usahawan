@@ -3,50 +3,34 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { auth, db } from '@/firebase/config';
-import { signOut, onAuthStateChanged } from 'firebase/auth';
+import { signOut, onAuthStateChanged, User } from 'firebase/auth';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { Building2, LogOut, User, Mail, Phone, MapPin, Edit, Save, X, AlertCircle, Image, Video, Plus, Trash2, Link } from 'lucide-react';
-import { Suspense } from 'react';
+import { Building2, LogOut, User as UserIcon, Mail, Phone, MapPin, Edit, Save, X, AlertCircle, Image, Video, Plus, Trash2, Link } from 'lucide-react';
 
-interface EntrepreneurData {
-  id: string;
+// Define proper types
+interface UserData {
   name: string;
   email: string;
   phone: string;
   businessName: string;
   businessType: string;
   address: string;
-  state: string;
-  district: string;
-  status: string;
-  createdAt: Date;
-  description?: string;
-  products?: string[];
-  images?: string[];
-  videos?: string[];
-  socialMedia?: {
-    facebook?: string;
-    instagram?: string;
-    website?: string;
-  };
+  images: File[];
+  videos: File[];
+  links: Array<{ title: string; url: string }>;
+  [key: string]: any;
 }
 
-// Create a component that uses useSearchParams
-function DashboardContent() {
+export default function EntrepreneurDashboard() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const entrepreneurId = searchParams.get('id');
   
-  const [entrepreneurData, setEntrepreneurData] = useState<EntrepreneurData | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [userData, setUserData] = useState<UserData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
-  const [activeTab, setActiveTab] = useState('profile');
-  const [editForm, setEditForm] = useState({
-    name: '',
-    phone: '',
-    businessName: '',
-    description: ''
-  });
+  const [editData, setEditData] = useState<UserData | null>(null);
 
   // Image and Video management states
   const [newImage, setNewImage] = useState('');
@@ -54,200 +38,143 @@ function DashboardContent() {
   const [isAddingImage, setIsAddingImage] = useState(false);
   const [isAddingVideo, setIsAddingVideo] = useState(false);
 
-  // Check authentication and load entrepreneur data
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        router.push('/entrepreneur/login');
-        return;
-      }
-
-      if (!entrepreneurId) {
-        console.error('No entrepreneur ID provided');
-        router.push('/entrepreneur/login');
-        return;
-      }
-
-      try {
-        // Load entrepreneur data from Firestore
-        const entrepreneurRef = doc(db, 'entrepreneurs', entrepreneurId);
-        const entrepreneurSnap = await getDoc(entrepreneurRef);
-
-        if (entrepreneurSnap.exists()) {
-          const data = entrepreneurSnap.data();
-          const entrepreneur: EntrepreneurData = {
-            id: entrepreneurSnap.id,
-            name: data.name || '',
-            email: data.email || '',
-            phone: data.phone || '',
-            businessName: data.businessName || '',
-            businessType: data.businessType || '',
-            address: data.address || '',
-            state: data.state || '',
-            district: data.district || '',
-            status: data.status || 'pending',
-            createdAt: data.createdAt?.toDate() || new Date(),
-            description: data.description || '',
-            products: data.products || [],
-            images: data.images || [],
-            videos: data.videos || [],
-            socialMedia: data.socialMedia || {}
-          };
-
-          setEntrepreneurData(entrepreneur);
-          setEditForm({
-            name: entrepreneur.name,
-            phone: entrepreneur.phone,
-            businessName: entrepreneur.businessName,
-            description: entrepreneur.description || ''
-          });
-        } else {
-          console.error('Entrepreneur not found');
-          router.push('/entrepreneur/login');
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser: User | null) => {
+      if (currentUser) {
+        setUser(currentUser);
+        try {
+          const userDoc = await getDoc(doc(db, 'entrepreneurs', currentUser.uid));
+          if (userDoc.exists()) {
+            setUserData(userDoc.data() as UserData);
+          }
+        } catch (error) {
+          console.error('Error fetching user data:', error);
         }
-      } catch (error) {
-        console.error('Error loading entrepreneur data:', error);
-        router.push('/entrepreneur/login');
-      } finally {
-        setIsLoading(false);
+      } else {
+        router.push('/');
       }
+      setIsLoading(false);
     });
 
     return () => unsubscribe();
-  }, [entrepreneurId, router]);
+  }, [router]);
 
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      router.push('/entrepreneur/login');
+      router.push('/');
     } catch (error) {
       console.error('Logout error:', error);
     }
   };
 
+  const handleEdit = () => {
+    if (userData) {
+      setEditData({ ...userData });
+      setIsEditing(true);
+    }
+  };
+
   const handleSave = async () => {
-    if (!entrepreneurData) return;
-
+    if (!user || !editData) return;
+    
     try {
-      const entrepreneurRef = doc(db, 'entrepreneurs', entrepreneurData.id);
-      await updateDoc(entrepreneurRef, {
-        name: editForm.name,
-        phone: editForm.phone,
-        businessName: editForm.businessName,
-        description: editForm.description,
-        updatedAt: new Date()
-      });
-
-      // Update local state
-      setEntrepreneurData(prev => prev ? {
-        ...prev,
-        name: editForm.name,
-        phone: editForm.phone,
-        businessName: editForm.businessName,
-        description: editForm.description
-      } : null);
-
+      const userRef = doc(db, 'entrepreneurs', user.uid);
+      await updateDoc(userRef, editData);
+      setUserData(editData);
       setIsEditing(false);
     } catch (error) {
-      console.error('Error updating entrepreneur data:', error);
+      console.error('Error updating profile:', error);
     }
   };
 
-  // Add image function
-  const handleAddImage = async () => {
-    if (!entrepreneurData || !newImage.trim()) return;
+  const handleCancel = () => {
+    setIsEditing(false);
+    setEditData(null);
+  };
 
-    try {
-      const entrepreneurRef = doc(db, 'entrepreneurs', entrepreneurData.id);
-      const updatedImages = [...(entrepreneurData.images || []), newImage];
-      
-      await updateDoc(entrepreneurRef, {
-        images: updatedImages,
-        updatedAt: new Date()
+  const handleInputChange = (field: string, value: string) => {
+    if (editData) {
+      setEditData({
+        ...editData,
+        [field]: value
       });
-
-      // Update local state
-      setEntrepreneurData(prev => prev ? {
-        ...prev,
-        images: updatedImages
-      } : null);
-
-      setNewImage('');
-      setIsAddingImage(false);
-    } catch (error) {
-      console.error('Error adding image:', error);
     }
   };
 
-  // Remove image function
-  const handleRemoveImage = async (imageIndex: number) => {
-    if (!entrepreneurData) return;
-
-    try {
-      const entrepreneurRef = doc(db, 'entrepreneurs', entrepreneurData.id);
-      const updatedImages = entrepreneurData.images?.filter((_, index) => index !== imageIndex) || [];
-      
-      await updateDoc(entrepreneurRef, {
-        images: updatedImages,
-        updatedAt: new Date()
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0 && editData) {
+      setEditData({
+        ...editData,
+        images: [...(editData.images || []), ...Array.from(files)]
       });
-
-      // Update local state
-      setEntrepreneurData(prev => prev ? {
-        ...prev,
-        images: updatedImages
-      } : null);
-    } catch (error) {
-      console.error('Error removing image:', error);
     }
   };
 
-  // Add video function
-  const handleAddVideo = async () => {
-    if (!entrepreneurData || !newVideo.trim()) return;
-
-    try {
-      const entrepreneurRef = doc(db, 'entrepreneurs', entrepreneurData.id);
-      const updatedVideos = [...(entrepreneurData.videos || []), newVideo];
-      
-      await updateDoc(entrepreneurRef, {
-        videos: updatedVideos,
-        updatedAt: new Date()
+  const handleVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0 && editData) {
+      setEditData({
+        ...editData,
+        videos: [...(editData.videos || []), ...Array.from(files)]
       });
-
-      // Update local state
-      setEntrepreneurData(prev => prev ? {
-        ...prev,
-        videos: updatedVideos
-      } : null);
-
-      setNewVideo('');
-      setIsAddingVideo(false);
-    } catch (error) {
-      console.error('Error adding video:', error);
     }
   };
 
-  // Remove video function
-  const handleRemoveVideo = async (videoIndex: number) => {
-    if (!entrepreneurData) return;
-
-    try {
-      const entrepreneurRef = doc(db, 'entrepreneurs', entrepreneurData.id);
-      const updatedVideos = entrepreneurData.videos?.filter((_, index) => index !== videoIndex) || [];
-      
-      await updateDoc(entrepreneurRef, {
-        videos: updatedVideos,
-        updatedAt: new Date()
+  const removeImage = (index: number) => {
+    if (editData) {
+      setEditData({
+        ...editData,
+        images: editData.images.filter((_, i) => i !== index)
       });
+    }
+  };
 
-      // Update local state
-      setEntrepreneurData(prev => prev ? {
-        ...prev,
-        videos: updatedVideos
-      } : null);
-    } catch (error) {
-      console.error('Error removing video:', error);
+  const removeVideo = (index: number) => {
+    if (editData) {
+      setEditData({
+        ...editData,
+        videos: editData.videos.filter((_, i) => i !== index)
+      });
+    }
+  };
+
+  const removeLink = (index: number) => {
+    if (editData) {
+      setEditData({
+        ...editData,
+        links: editData.links.filter((_, i) => i !== index)
+      });
+    }
+  };
+
+  const addLink = () => {
+    if (editData) {
+      setEditData({
+        ...editData,
+        links: [...(editData.links || []), { title: '', url: '' }]
+      });
+    }
+  };
+
+  const updateLink = (index: number, field: string, value: string) => {
+    if (editData) {
+      setEditData({
+        ...editData,
+        links: editData.links.map((link, i) => 
+          i === index ? { ...link, [field]: value } : link
+        )
+      });
+    }
+  };
+
+  const removeLinkItem = (index: number) => {
+    if (editData) {
+      setEditData({
+        ...editData,
+        links: editData.links.filter((_, i) => i !== index)
+      });
     }
   };
 
@@ -279,7 +206,7 @@ function DashboardContent() {
     );
   }
 
-  if (!entrepreneurData) {
+  if (!userData) {
     return null;
   }
 
@@ -293,7 +220,7 @@ function DashboardContent() {
               <Building2 className="h-8 w-8 text-purple-600" />
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">Dashboard Usahawan</h1>
-                <p className="text-sm text-gray-600">{entrepreneurData.businessName}</p>
+                <p className="text-sm text-gray-600">{userData.businessName}</p>
               </div>
             </div>
             <button
@@ -313,7 +240,7 @@ function DashboardContent() {
         <div className="border-b border-gray-200 mb-8">
           <nav className="-mb-px flex space-x-8">
             {[
-              { id: 'profile', name: 'Profil', icon: User },
+              { id: 'profile', name: 'Profil', icon: UserIcon },
               { id: 'images', name: 'Gambar', icon: Image },
               { id: 'videos', name: 'Video', icon: Video }
             ].map((tab) => (
@@ -340,7 +267,7 @@ function DashboardContent() {
               <h2 className="text-xl font-bold text-gray-900">Maklumat Perniagaan</h2>
               {!isEditing ? (
                 <button
-                  onClick={() => setIsEditing(true)}
+                  onClick={handleEdit}
                   className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors duration-200"
                 >
                   <Edit className="h-4 w-4 mr-2" />
@@ -356,7 +283,7 @@ function DashboardContent() {
                     Simpan
                   </button>
                   <button
-                    onClick={() => setIsEditing(false)}
+                    onClick={handleCancel}
                     className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200"
                   >
                     <X className="h-4 w-4 mr-2" />
@@ -375,18 +302,18 @@ function DashboardContent() {
                 
                 <div className="space-y-3">
                   <div className="flex items-center">
-                    <User className="h-5 w-5 text-gray-400 mr-3" />
+                    <UserIcon className="h-5 w-5 text-gray-400 mr-3" />
                     <div>
                       <p className="text-sm font-medium text-gray-500">Nama</p>
                       {isEditing ? (
                         <input
                           type="text"
-                          value={editForm.name}
-                          onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
+                          value={editData?.name || ''}
+                          onChange={(e) => handleInputChange('name', e.target.value)}
                           className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                         />
                       ) : (
-                        <p className="text-gray-900">{entrepreneurData.name}</p>
+                        <p className="text-gray-900">{userData.name}</p>
                       )}
                     </div>
                   </div>
@@ -395,7 +322,7 @@ function DashboardContent() {
                     <Mail className="h-5 w-5 text-gray-400 mr-3" />
                     <div>
                       <p className="text-sm font-medium text-gray-500">Emel</p>
-                      <p className="text-gray-900">{entrepreneurData.email}</p>
+                      <p className="text-gray-900">{userData.email}</p>
                     </div>
                   </div>
 
@@ -406,12 +333,12 @@ function DashboardContent() {
                       {isEditing ? (
                         <input
                           type="tel"
-                          value={editForm.phone}
-                          onChange={(e) => setEditForm(prev => ({ ...prev, phone: e.target.value }))}
+                          value={editData?.phone || ''}
+                          onChange={(e) => handleInputChange('phone', e.target.value)}
                           className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                         />
                       ) : (
-                        <p className="text-gray-900">{entrepreneurData.phone}</p>
+                        <p className="text-gray-900">{userData.phone}</p>
                       )}
                     </div>
                   </div>
@@ -430,41 +357,41 @@ function DashboardContent() {
                     {isEditing ? (
                       <input
                         type="text"
-                        value={editForm.businessName}
-                        onChange={(e) => setEditForm(prev => ({ ...prev, businessName: e.target.value }))}
+                        value={editData?.businessName || ''}
+                        onChange={(e) => handleInputChange('businessName', e.target.value)}
                         className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                       />
                     ) : (
-                      <p className="text-gray-900">{entrepreneurData.businessName}</p>
+                      <p className="text-gray-900">{userData.businessName}</p>
                     )}
                   </div>
 
                   <div>
                     <p className="text-sm font-medium text-gray-500">Jenis Perniagaan</p>
-                    <p className="text-gray-900">{entrepreneurData.businessType}</p>
+                    <p className="text-gray-900">{userData.businessType}</p>
                   </div>
 
                   <div>
                     <p className="text-sm font-medium text-gray-500">Alamat</p>
-                    <p className="text-gray-900">{entrepreneurData.address}</p>
+                    <p className="text-gray-900">{userData.address}</p>
                   </div>
 
                   <div>
                     <p className="text-sm font-medium text-gray-500">Lokasi</p>
-                    <p className="text-gray-900">{entrepreneurData.district}, {entrepreneurData.state}</p>
+                    <p className="text-gray-900">{userData.district}, {userData.state}</p>
                   </div>
 
                   <div>
                     <p className="text-sm font-medium text-gray-500">Status</p>
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      entrepreneurData.status === 'approved' 
+                      userData.status === 'approved' 
                         ? 'bg-green-100 text-green-800' 
-                        : entrepreneurData.status === 'pending'
+                        : userData.status === 'pending'
                         ? 'bg-yellow-100 text-yellow-800'
                         : 'bg-red-100 text-red-800'
                     }`}>
-                      {entrepreneurData.status === 'approved' ? 'Diluluskan' : 
-                       entrepreneurData.status === 'pending' ? 'Menunggu Kelulusan' : 'Ditolak'}
+                      {userData.status === 'approved' ? 'Diluluskan' : 
+                       userData.status === 'pending' ? 'Menunggu Kelulusan' : 'Ditolak'}
                     </span>
                   </div>
                 </div>
@@ -477,8 +404,8 @@ function DashboardContent() {
               {isEditing ? (
                 <div>
                   <textarea
-                    value={editForm.description}
-                    onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
+                    value={editData?.description || ''}
+                    onChange={(e) => handleInputChange('description', e.target.value)}
                     rows={4}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     placeholder="Ceritakan tentang perniagaan anda, produk atau perkhidmatan yang ditawarkan..."
@@ -489,8 +416,8 @@ function DashboardContent() {
                 </div>
               ) : (
                 <div>
-                  {entrepreneurData.description ? (
-                    <p className="text-gray-700 leading-relaxed">{entrepreneurData.description}</p>
+                  {userData.description ? (
+                    <p className="text-gray-700 leading-relaxed">{userData.description}</p>
                   ) : (
                     <p className="text-gray-500 italic">Tiada penerangan perniagaan tersedia. Klik "Edit" untuk menambah penerangan.</p>
                   )}
@@ -547,17 +474,17 @@ function DashboardContent() {
             )}
 
             {/* Images Grid */}
-            {entrepreneurData.images && entrepreneurData.images.length > 0 ? (
+            {userData.images && userData.images.length > 0 ? (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {entrepreneurData.images.map((image, index) => (
+                {userData.images.map((image, index) => (
                   <div key={index} className="relative group">
                     <img
-                      src={image}
+                      src={image.url || URL.createObjectURL(image)}
                       alt={`Gambar ${index + 1}`}
                       className="w-full h-32 object-cover rounded-lg"
                     />
                     <button
-                      onClick={() => handleRemoveImage(index)}
+                      onClick={() => removeImage(index)}
                       className="absolute top-2 right-2 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -624,12 +551,12 @@ function DashboardContent() {
             )}
 
             {/* Videos Grid */}
-            {entrepreneurData.videos && entrepreneurData.videos.length > 0 ? (
+            {userData.videos && userData.videos.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {entrepreneurData.videos.map((video, index) => {
-                  const videoId = extractYouTubeId(video);
-                  const thumbnail = getYouTubeThumbnail(video);
-                  const embedUrl = getYouTubeEmbedUrl(video);
+                {userData.videos.map((video, index) => {
+                  const videoId = extractYouTubeId(video.url || '');
+                  const thumbnail = getYouTubeThumbnail(video.url || '');
+                  const embedUrl = getYouTubeEmbedUrl(video.url || '');
                   
                   return (
                     <div key={index} className="relative group">
@@ -684,7 +611,7 @@ function DashboardContent() {
                       
                       {/* Remove Button */}
                       <button
-                        onClick={() => handleRemoveVideo(index)}
+                        onClick={() => removeVideo(index)}
                         className="absolute top-2 right-2 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
                         title="Padam video"
                       >
@@ -703,7 +630,7 @@ function DashboardContent() {
             )}
 
             {/* Video Preview Modal */}
-            {entrepreneurData.videos && entrepreneurData.videos.length > 0 && (
+            {userData.videos && userData.videos.length > 0 && (
               <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                 <h4 className="text-sm font-medium text-blue-900 mb-2">Cara Tonton Video:</h4>
                 <ul className="text-sm text-blue-800 space-y-1">
@@ -717,7 +644,7 @@ function DashboardContent() {
         )}
 
         {/* Status Message */}
-        {entrepreneurData.status === 'pending' && (
+        {userData.status === 'pending' && (
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mt-8">
             <div className="flex items-center">
               <AlertCircle className="h-5 w-5 text-yellow-400 mr-2" />
@@ -728,7 +655,7 @@ function DashboardContent() {
           </div>
         )}
 
-        {entrepreneurData.status === 'rejected' && (
+        {userData.status === 'rejected' && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 mt-8">
             <div className="flex items-center">
               <AlertCircle className="h-5 w-5 text-red-400 mr-2" />
@@ -740,21 +667,5 @@ function DashboardContent() {
         )}
       </main>
     </div>
-  );
-}
-
-// Main page component with Suspense
-export default function EntrepreneurDashboard() {
-  return (
-    <Suspense fallback={
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-50 to-pink-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 text-lg">Memuatkan dashboard usahawan...</p>
-        </div>
-      </div>
-    }>
-      <DashboardContent />
-    </Suspense>
   );
 }

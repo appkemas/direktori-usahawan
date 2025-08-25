@@ -3,7 +3,6 @@
 import React from 'react';
 import { Mail, Phone, MapPin, Printer } from 'lucide-react';
 import Image from 'next/image';
-import Link from 'next/link';
 
 export default function Footer() {
   return (
@@ -33,9 +32,9 @@ export default function Footer() {
               Platform direktori digital untuk usahawan KEMAS Malaysia yang membolehkan pengguna mencari dan menghubungi perniagaan tempatan.
             </p>
             <div className="flex space-x-4">
-              <Link href="mailto:info@kemas.gov.my">
-                <Mail className="h-5 w-5 text-gray-400 hover:text-white transition-colors duration-200" />
-              </Link>
+              <a href="mailto:info@kemas.gov.my" className="text-gray-400 hover:text-white transition-colors duration-200">
+                <Mail className="h-5 w-5" />
+              </a>
               <a href="tel:+603-8891 2682" className="text-gray-400 hover:text-white transition-colors duration-200">
                 <Phone className="h-5 w-5" />
               </a>
