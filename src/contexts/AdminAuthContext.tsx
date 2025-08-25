@@ -85,73 +85,42 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
     return () => unsubscribe();
   }, []);
 
-  const login = async (email: string, password: string): Promise<void> => {
+  const login = async (email: string, password: string): Promise<AdminUser> => {
     try {
-      console.log(' AdminAuthContext - Attempting login for:', email);
-      
-      // Sign in with Firebase Auth
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      console.log('✅ AdminAuthContext - Firebase Auth successful for:', userCredential.user.email);
-      console.log(' AdminAuthContext - User UID:', userCredential.user.uid);
+      const user = userCredential.user;
       
-      // Search by UID (secure approach)
-      const adminQuery = query(collection(db, 'admins'), where('uid', '==', userCredential.user.uid));
-      console.log(' AdminAuthContext - Searching for UID:', userCredential.user.uid);
+      // Look up admin data in Firestore
+      const adminQuery = query(
+        collection(db, 'admins'),
+        where('uid', '==', user.uid)
+      );
       
       const adminSnapshot = await getDocs(adminQuery);
-      console.log(' AdminAuthContext - Query result:', adminSnapshot.empty ? 'empty' : 'found documents');
       
       if (adminSnapshot.empty) {
-        console.log('❌ AdminAuthContext - User not found in admins collection');
-        console.log(' AdminAuthContext - Let me check what documents exist:');
-        
-        // List all documents in admins collection for debugging
-        const allAdmins = await getDocs(collection(db, 'admins'));
-        allAdmins.forEach(doc => {
-          const data = doc.data();
-          console.log('  - Document ID:', doc.id, 'UID field:', data.uid, 'Email:', data.email);
-        });
-        
-        await signOut(auth);
         throw new Error('Akaun pentadbir tidak dijumpai. Sila hubungi pentadbir sistem.');
       }
       
       const adminData = adminSnapshot.docs[0].data();
-      console.log('✅ AdminAuthContext - Admin data found:', adminData);
       
-      // Fix the createdAt field handling
-      let createdAt: Date;
-      if (adminData.createdAt && typeof adminData.createdAt.toDate === 'function') {
-        // It's a Firebase Timestamp
-        createdAt = adminData.createdAt.toDate();
-      } else if (adminData.createdAt instanceof Date) {
-        // It's already a Date object
-        createdAt = adminData.createdAt;
-      } else if (adminData.createdAt) {
-        // It's a string or other format, convert to Date
-        createdAt = new Date(adminData.createdAt);
-      } else {
-        // No createdAt, use current date
-        createdAt = new Date();
-      }
-      
-      // Set admin user
-      setAdminUser({
-        uid: userCredential.user.uid,
-        email: userCredential.user.email!,
+      // Type assertion with proper interface
+      const adminUser: AdminUser = {
+        uid: user.uid,
+        email: user.email || '',
         name: adminData.name || '',
-        phone: adminData.phone || '',
         role: adminData.role || '',
         state: adminData.state || '',
         district: adminData.district || '',
-        status: adminData.status || 'active',
-        createdAt: createdAt
-      });
+        status: adminData.status || '',
+        phone: adminData.phone || '',
+        createdAt: adminData.createdAt ? adminData.createdAt.toDate() : new Date()
+      };
       
-      console.log('✅ AdminAuthContext - Admin user set successfully');
-      
-    } catch (error: any) {
-      console.error('❌ AdminAuthContext - Login error:', error);
+      setAdminUser(adminUser);
+      return adminUser;
+    } catch (error) {
+      console.error('Login error:', error);
       throw error;
     }
   };

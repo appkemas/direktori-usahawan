@@ -7,6 +7,7 @@ import { signInWithEmailAndPassword } from 'firebase/auth';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { sendPasswordResetEmail } from 'firebase/auth';
 import { Building2, Mail, Lock, Eye, EyeOff, AlertCircle, X, CheckCircle } from 'lucide-react';
+import Link from 'next/link';
 
 export default function EntrepreneurLogin() {
   const router = useRouter();
@@ -229,9 +230,7 @@ export default function EntrepreneurLogin() {
                 </a>
               </p>
               <p className="text-sm text-gray-600">
-                <a href="/" className="font-medium text-purple-600 hover:text-purple-500 transition-colors duration-200">
-                  Kembali ke laman utama
-                </a>
+                <Link href="/">Kembali ke laman utama</Link>
               </p>
             </div>
           </form>
